@@ -1,0 +1,310 @@
+<!DOCTYPE html>  <html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Deposit - Crypto Deposit Demo</title>  
+    <style>  
+        * { margin: 0; padding: 0; box-sizing: border-box; }  
+        body {  
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;  
+            background: #f5f5f5;  
+            min-height: 100vh;  
+        }  
+        .navbar {  
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  
+            color: white;  
+            padding: 20px 0;  
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);  
+        }  
+        .nav-content {  
+            max-width: 1200px;  
+            margin: 0 auto;  
+            padding: 0 20px;  
+            display: flex;  
+            justify-content: space-between;  
+            align-items: center;  
+        }  
+        .nav-content h1 {  
+            font-size: 24px;  
+        }  
+        .back-btn {  
+            background: rgba(255,255,255,0.2);  
+            border: 1px solid white;  
+            color: white;  
+            padding: 8px 16px;  
+            border-radius: 6px;  
+            cursor: pointer;  
+            font-size: 14px;  
+            text-decoration: none;  
+            display: inline-block;  
+        }  
+        .back-btn:hover {  
+            background: rgba(255,255,255,0.3);  
+        }  
+        .container {  
+            max-width: 800px;  
+            margin: 40px auto;  
+            padding: 0 20px;  
+        }  
+        .card {  
+            background: white;  
+            padding: 30px;  
+            border-radius: 12px;  
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);  
+            margin-bottom: 20px;  
+        }  
+        .section-title {  
+            font-size: 20px;  
+            font-weight: 600;  
+            margin-bottom: 20px;  
+            color: #333;  
+        }  
+        .deposit-address {  
+            background: #f9f9f9;  
+            padding: 20px;  
+            border-radius: 8px;  
+            margin-bottom: 20px;  
+        }  
+        .address-label {  
+            font-size: 14px;  
+            color: #666;  
+            margin-bottom: 10px;  
+            font-weight: 600;  
+        }  
+        .address-value {  
+            font-size: 16px;  
+            font-family: monospace;  
+            color: #333;  
+            margin-bottom: 15px;  
+            word-break: break-all;  
+            padding: 12px;  
+            background: white;  
+            border: 2px solid #667eea;  
+            border-radius: 6px;  
+        }  
+        .copy-btn {  
+            background: #667eea;  
+            color: white;  
+            border: none;  
+            padding: 10px 20px;  
+            border-radius: 6px;  
+            cursor: pointer;  
+            font-size: 14px;  
+            font-weight: 600;  
+        }  
+        .copy-btn:hover {  
+            background: #5568d3;  
+        }  
+        .copy-btn.copied {  
+            background: #28a745;  
+        }  
+        .warning-box {  
+            background: #fff3cd;  
+            border: 2px solid #ffc107;  
+            padding: 20px;  
+            border-radius: 8px;  
+            margin-bottom: 20px;  
+        }  
+        .warning-title {  
+            font-weight: 700;  
+            color: #856404;  
+            margin-bottom: 12px;  
+            font-size: 16px;  
+        }  
+        .warning-list {  
+            color: #856404;  
+            font-size: 14px;  
+            line-height: 1.8;  
+            padding-left: 20px;  
+        }  
+        .warning-list li {  
+            margin-bottom: 8px;  
+        }  
+        .info-box {  
+            background: #e7f3ff;  
+            border: 2px solid #2196f3;  
+            padding: 20px;  
+            border-radius: 8px;  
+        }  
+        .info-item {  
+            display: flex;  
+            justify-content: space-between;  
+            padding: 10px 0;  
+            border-bottom: 1px solid #cce5ff;  
+        }  
+        .info-item:last-child {  
+            border-bottom: none;  
+        }  
+        .info-label {  
+            font-weight: 600;  
+            color: #0c5689;  
+        }  
+        .info-value {  
+            color: #0c5689;  
+            font-family: monospace;  
+        }  
+        .loading {  
+            text-align: center;  
+            padding: 40px;  
+            color: #999;  
+        }  
+        .qr-code {  
+            text-align: center;  
+            margin: 20px 0;  
+        }  
+        .qr-code img {  
+            max-width: 200px;  
+            border: 2px solid #e0e0e0;  
+            border-radius: 8px;  
+            padding: 10px;  
+            background: white;  
+        }  
+        .highlight {  
+            background: #fff9e6;  
+            padding: 2px 6px;  
+            border-radius: 3px;  
+            font-weight: 600;  
+        }  
+    </style>  
+</head>  
+<body>  
+    <div class="navbar">  
+        <div class="nav-content">  
+            <h1>💳 Deposit USDT</h1>  
+            <a href="/wallet.html" class="back-btn">← Back to Wallet</a>  
+        </div>  
+ <div class="container">  
+        <div class="card">  
+            <h2 class="section-title">Your Unique Deposit Address</h2>  
+            <div id="depositContent">  
+                <div class="loading">Loading your deposit address...</div>  
+            </div>  
+        </div>  <div class="card">  
+
+        <div class="warning-box">  
+            <div class="warning-title">⚠️ CRITICAL: Read Before Sending</div>  
+            <ul class="warning-list">  
+                <li><strong>ONLY send BEP20 USDT (Binance Smart Chain)</strong> to this address</li>  
+                <li>DO NOT send USDT on Ethereum, Tron, or any other network - funds will be <span class="highlight">LOST FOREVER</span></li>  
+                <li>DO NOT send BNB, ETH, BTC or any other token - only <span class="highlight">BEP20 USDT</span></li>  
+                <li>Minimum deposit: <span class="highlight" id="minDeposit">10 USDT</span></li>  
+                <li>Your deposit will be credited after <span class="highlight" id="requiredConf">3</span> blockchain confirmations (~9 seconds)</li>  
+                <li>Funds will be automatically swept to our secure hot wallet after confirmation</li>  
+            </ul>  
+        </div>  
+    </div>  
+
+    <div class="card">  
+        <h2 class="section-title">Deposit Information</h2>  
+        <div class="info-box">  
+            <div class="info-item">  
+                <span class="info-label">Network:</span>  
+                <span class="info-value">Binance Smart Chain (BEP20)</span>  
+            </div>  
+            <div class="info-item">  
+                <span class="info-label">Token:</span>  
+                <span class="info-value">USDT (Tether)</span>  
+            </div>  
+            <div class="info-item">  
+                <span class="info-label">Contract Address:</span>  
+                <span class="info-value">0x55d398...B3197955</span>  
+            </div>  
+            <div class="info-item">  
+                <span class="info-label">Confirmation Time:</span>  
+                <span class="info-value">~30-60 seconds</span>  
+            </div>  
+            <div class="info-item">  
+                <span class="info-label">Auto-Sweep:</span>  
+                <span class="info-value">After 3 confirmations</span>  
+            </div>  
+        </div>  
+    </div>  
+
+    <div class="card">  
+        <h2 class="section-title">How to Deposit</h2>  
+        <ol style="line-height: 2; color: #555;">  
+            <li>Copy your deposit address above</li>  
+            <li>Open your wallet (Trust Wallet, MetaMask, Binance, etc.)</li>  
+            <li>Select <strong>USDT</strong> and choose <strong>BEP20 / BSC network</strong></li>  
+            <li>Paste your deposit address and enter amount</li>  
+            <li>Confirm the transaction and wait for confirmations</li>  
+            <li>Your balance will update automatically on this page</li>  
+        </ol>  
+    </div>  
+</div>  
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const API_BASE =
+        localStorage.getItem('apiBase') ||
+        (window.location.hostname === 'localhost'
+            ? 'http://localhost:3000'
+            : 'https://crypto-deposit-backend-production.up.railway.app');
+
+    const userId = localStorage.getItem('userId');
+
+    if (!userId) {
+        window.location.href = '/login.html';
+        return;
+    }
+
+    async function loadDepositInfo() {
+        try {
+            const response = await fetch(`${API_BASE}/api/wallet/${userId}`);
+            const data = await response.json();
+
+            if (data.success && data.wallet) {
+                const address = data.wallet.address;
+                const qrCodeUrl =
+                    `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${address}`;
+
+                document.getElementById('depositContent').innerHTML = `
+                    <div class="deposit-address">
+                        <div class="address-label">Your BSC Address (BEP20 ONLY)</div>
+                        <div class="address-value" id="address">${address}</div>
+                        <button class="copy-btn" onclick="copyAddress()">📋 Copy Address</button>
+                    </div>
+                    <div class="qr-code">
+                        <div class="qr-label">Scan QR Code</div>
+                        <img src="${qrCodeUrl}" alt="QR Code">
+                        <div class="qr-hint">Scan with your mobile wallet</div>
+                    </div>
+                `;
+            } else {
+                showError();
+            }
+        } catch (err) {
+            console.error(err);
+            showError();
+        }
+    }
+
+    function showError() {
+        document.getElementById('depositContent').innerHTML = `
+            <div class="loading">
+                Error loading deposit address. Please refresh the page.
+            </div>
+        `;
+    }
+
+    window.copyAddress = function () {
+        const address = document.getElementById('address').textContent;
+        navigator.clipboard.writeText(address).then(() => {
+            const btn = document.querySelector('.copy-btn');
+            const original = btn.textContent;
+            btn.textContent = '✓ Copied!';
+            btn.classList.add('copied');
+
+            setTimeout(() => {
+                btn.textContent = original;
+                btn.classList.remove('copied');
+            }, 2500);
+        });
+    };
+
+    loadDepositInfo();
+});
+</script>
+</body>  
+</html>

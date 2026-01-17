@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet - Crypto Deposit Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-content h1 {
+            font-size: 24px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid white;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .balance-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .balance-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        .balance-amount {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .balance-currency {
+            font-size: 20px;
+            opacity: 0.9;
+        }
+        .address-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.3);
+        }
+        .address-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+        .address-value {
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: transform 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .transactions-table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow-x: auto;
+            display: block;
+        }
+        .transactions-table thead,
+        .transactions-table tbody {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+        .transactions-table th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid #e0e0e0;
+            color: #666;
+            font-weight: 600;
+        }
+        .transactions-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            word-break: break-all;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.confirmed {
+            background: #d4edda;
+            color: #155724;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .refresh-btn {
+            background: #f0f0f0;
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        .refresh-btn:hover {
+            background: #e0e0e0;
+        }
+        .auto-refresh {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 12px;
+            color: #28a745;
+        }
+        .tx-link {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .tx-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="nav-content">
+            <h1>💰 Crypto Wallet</h1>
+            <div class="user-info">
+                <span id="userEmail"></span>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card balance-card">
+            <div class="balance-label">Total Balance</div>
+            <div class="balance-amount" id="balance">Loading...</div>
+            <div class="balance-currency">USDT (BEP20)</div>
+            <div class="address-section">
+                <div class="address-label">Your BSC Deposit Address:</div>
+                <div class="address-value" id="walletAddress">Loading...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <a href="/deposit.html" class="btn">💳 View Deposit Instructions</a>
+            <button class="refresh-btn" onclick="loadWallet()">🔄 Refresh</button>
+            <span class="auto-refresh">● Auto-updating every 10s</span>
+        </div>
+
+        <div class="card">
+            <h2 class="section-title">Recent Transactions</h2>
+            <div id="transactionsContainer">
+                <div class="loading">Loading transactions...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // API configuration
+    const API_BASE =
+        localStorage.getItem('apiBase') ||
+        (window.location.hostname === 'localhost'
+            ? 'http://localhost:3000'
+            : 'https://crypto-deposit-backend-production.up.railway.app');
+
+    const userId = localStorage.getItem('userId');
+    const userEmail = localStorage.getItem('userEmail');
+
+    if (!userId) {
+        window.location.href = '/login.html';
+        return;
+    }
+
+    document.getElementById('userEmail').textContent = userEmail;
+
+    async function loadWallet() {
+        try {
+            const response = await fetch(`${API_BASE}/api/wallet/${userId}`);
+            const data = await response.json();
+
+            if (data.success && data.wallet) {
+                document.getElementById('balance').textContent =
+                    parseFloat(data.wallet.balance || 0).toFixed(6);
+                document.getElementById('walletAddress').textContent =
+                    data.wallet.address;
+            } else {
+                document.getElementById('balance').textContent = '0.000000';
+                document.getElementById('walletAddress').textContent = 'Unavailable';
+            }
+        } catch (err) {
+            console.error(err);
+            document.getElementById('balance').textContent = 'Error';
+        }
+    }
+
+    async function loadTransactions() {
+        try {
+            const response = await fetch(`${API_BASE}/api/wallet/${userId}/transactions`);
+            const data = await response.json();
+            const container = document.getElementById('transactionsContainer');
+
+            if (data.success && data.transactions?.length) {
+                container.innerHTML = `
+                    <table class="transactions-table">
+                        <thead>
+                            <tr>
+                                <th>TX Hash</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Confirms</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.transactions.map(tx => `
+                                <tr>
+                                    <td>
+                                        <a href="https://bscscan.com/tx/${tx.tx_hash}" target="_blank">
+                                            ${tx.tx_hash.slice(0, 8)}...${tx.tx_hash.slice(-6)}
+                                        </a>
+                                    </td>
+                                    <td>${parseFloat(tx.amount).toFixed(2)} USDT</td>
+                                    <td class="status ${tx.status}">${tx.status}</td>
+                                    <td>${tx.confirmations || 0}</td>
+                                    <td>${new Date(tx.created_at).toLocaleString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        No deposits yet.<br/>
+                        Send BEP20 USDT to your wallet address.
+                    </div>
+                `;
+            }
+        } catch (err) {
+            console.error(err);
+            document.getElementById('transactionsContainer').innerHTML =
+                '<div class="empty-state">Failed to load transactions</div>';
+        }
+    }
+
+    window.logout = function () {
+        localStorage.clear();
+        window.location.href = '/login.html';
+    };
+
+    loadWallet();
+    loadTransactions();
+    setInterval(() => {
+        loadWallet();
+        loadTransactions();
+    }, 10000);
+
+});
+</script>
+</body>
+</html>
