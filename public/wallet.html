@@ -229,11 +229,10 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // API configuration
-    const API_BASE =
-        localStorage.getItem('apiBase') ||
-        (window.location.hostname === 'localhost'
-            ? 'http://localhost:3000'
-            : 'https://crypto-deposit-backend-production.up.railway.app');
+  const API_BASE =
+    location.hostname === "localhost"
+      ? "http://localhost:3000"
+      : "https://crypto-deposit-backend-production.up.railway.app";
 
     const userId = localStorage.getItem('userId');
     const userEmail = localStorage.getItem('userEmail');

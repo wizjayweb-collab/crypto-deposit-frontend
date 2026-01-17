@@ -393,10 +393,10 @@ td {
 /* ================================
    API BASE CONFIG (FIXED)
 ================================ */
-const API_BASE =
-  window.location.hostname === "localhost"
-    ? "http://crypto-deposit-backend-production.up.railway.app"   // backend local
-    : window.location.origin;  // same domain in production
+  const API_BASE =
+    location.hostname === "localhost"
+      ? "http://localhost:3000"
+      : "https://crypto-deposit-backend-production.up.railway.app";
 
 const token = localStorage.getItem("adminToken");
 
