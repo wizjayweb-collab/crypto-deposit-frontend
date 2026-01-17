@@ -137,85 +137,79 @@
         </div>
     </div>
 
-    <script>
+   <script>
 document.addEventListener('DOMContentLoaded', () => {
 
-    // API Configuration
-   
-   const API_BASE =
-    location.hostname === "localhost"
+  /* ===============================
+     API CONFIG
+  =============================== */
+  const API_BASE =
+    window.location.hostname === "localhost"
       ? "http://localhost:3000"
       : "https://crypto-deposit-backend-production.up.railway.app";
 
-    const form = document.getElementById('registerForm');
-    const errorDiv = document.getElementById('error');
-    const successDiv = document.getElementById('success');
-    const submitBtn = document.getElementById('submitBtn');
-    const statusMsg = document.getElementById('statusMsg');
+  const form = document.getElementById('registerForm');
+  const errorDiv = document.getElementById('error');
+  const successDiv = document.getElementById('success');
+  const submitBtn = document.getElementById('submitBtn');
+  const statusMsg = document.getElementById('statusMsg');
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
+  /* ===============================
+     REGISTER SUBMIT
+  =============================== */
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-        errorDiv.style.display = 'none';
-        successDiv.style.display = 'none';
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Creating account...';
-        statusMsg.textContent = 'Step 1/2: Creating user account...';
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating account...';
+    statusMsg.textContent = 'Creating user account...';
 
-        const email = document.getElementById('email').value;
+    const email = document.getElementById('email').value;
 
-        try {
-            // Step 1: Register user
-            const registerResponse = await fetch(`${API_BASE}/api/auth/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
-            });
+    try {
+      /* ===============================
+         STEP 1: REGISTER USER
+      =============================== */
+      const res = await fetch(`${API_BASE}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
 
-            const registerData = await registerResponse.json();
+      const data = await res.json();
 
-            if (!registerData.success) {
-                throw new Error(registerData.error || 'Registration failed');
-            }
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Registration failed');
+      }
 
-            const userId = registerData.userId;
-            statusMsg.textContent = 'Step 2/2: Generating your BSC wallet address...';
+      /* ===============================
+         SAVE USER
+      =============================== */
+      localStorage.setItem('userId', data.userId);
+      localStorage.setItem('userEmail', email);
 
-            // Step 2: Create wallet
-            const walletResponse = await fetch(`${API_BASE}/api/wallet/create`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId })
-            });
+      successDiv.textContent = '✓ Account created successfully!';
+      successDiv.style.display = 'block';
 
-            const walletData = await walletResponse.json();
+      statusMsg.textContent = 'Redirecting to your wallet...';
 
-            if (!walletData.success) {
-                throw new Error('Failed to create wallet');
-            }
+      /* ===============================
+         REDIRECT
+      =============================== */
+      setTimeout(() => {
+        window.location.href = '/wallet.html';
+      }, 1500);
 
-            localStorage.setItem('userId', userId);
-            localStorage.setItem('userEmail', email);
-
-            successDiv.textContent =
-                `✓ Account created! Your BSC address: ${walletData.wallet.address.slice(0, 10)}...`;
-            successDiv.style.display = 'block';
-
-            statusMsg.textContent = 'Redirecting to your wallet...';
-
-            setTimeout(() => {
-                window.location.href = '/wallet.html';
-            }, 2000);
-
-        } catch (err) {
-            errorDiv.textContent = err.message;
-            errorDiv.style.display = 'block';
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Create Account';
-            statusMsg.textContent = '';
-        }
-    });
-
+    } catch (err) {
+      errorDiv.textContent = err.message;
+      errorDiv.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Create Account';
+      statusMsg.textContent = '';
+    }
+  });
 });
 </script>
 </body>
