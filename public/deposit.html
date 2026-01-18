@@ -251,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ===============================
-     LOAD DEPOSIT ADDRESS
+     LOAD DEPOSIT ADDRESS (BEP20)
   =============================== */
   async function loadDepositInfo() {
     try {
@@ -262,28 +262,40 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json();
       console.log('Deposit response:', data);
 
-      if (data.success && data.data && data.data.address) {
-        const address = data.data.address;
-        const qrCodeUrl =
-          `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${address}`;
-
-        document.getElementById('depositContent').innerHTML = `
-          <div class="deposit-address">
-            <div class="address-label">Your BSC Address (BEP20 ONLY)</div>
-            <div class="address-value" id="address">${address}</div>
-            <button class="copy-btn" onclick="copyAddress()">📋 Copy Address</button>
-          </div>
-
-          <div class="qr-code">
-            <img src="${qrCodeUrl}" alt="QR Code">
-            <div class="qr-hint">Scan with your wallet</div>
-          </div>
-        `;
-      } else {
-        showError();
+      // ✅ CORRECT RESPONSE CHECK
+      if (!data.success || !data.wallet || !data.wallet.address) {
+        throw new Error('Deposit address not found');
       }
+
+      const address = data.wallet.address;
+      const qrCodeUrl =
+        `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${address}`;
+
+      document.getElementById('depositContent').innerHTML = `
+        <div class="deposit-address">
+          <div class="address-label">
+            Your BSC Address (BEP20 ONLY)
+          </div>
+
+          <div class="address-value" id="address">
+            ${address}
+          </div>
+
+          <button class="copy-btn" onclick="copyAddress()">
+            📋 Copy Address
+          </button>
+        </div>
+
+        <div class="qr-code">
+          <img src="${qrCodeUrl}" alt="Deposit QR Code">
+          <div class="qr-hint">
+            Scan with your wallet
+          </div>
+        </div>
+      `;
+
     } catch (err) {
-      console.error(err);
+      console.error('Deposit load error:', err);
       showError();
     }
   }

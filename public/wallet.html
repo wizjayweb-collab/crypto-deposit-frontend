@@ -243,82 +243,66 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ===============================
-     LOAD DEPOSIT ADDRESS
+     LOAD WALLET + DEPOSIT ADDRESS
   =============================== */
+  async function loadWallet() {
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/wallet?userId=${userId}`
+      );
+      const data = await res.json();
+
+      console.log('Wallet API:', data);
+
+      if (!data.success || !data.wallet) {
+        throw new Error('Wallet fetch failed');
+      }
+
+      document.getElementById('balance').textContent =
+        Number(data.wallet.balance).toFixed(2);
+
+      document.getElementById('walletAddress').textContent =
+        data.wallet.address;
+
+    } catch (err) {
+      console.error('Wallet load error:', err);
+      document.getElementById('walletAddress').textContent =
+        '❌ Failed to load wallet';
+    }
+  }
+
   async function loadDepositInfo() {
     try {
-      const response = await fetch(
+      const res = await fetch(
         `${API_BASE}/api/wallet/deposit-address?userId=${userId}`
       );
+      const data = await res.json();
 
-      const data = await response.json();
-      console.log('Deposit API response:', data);
+      console.log('Deposit API:', data);
 
-      // ✅ IMPORTANT FIX: data.data (NOT data.wallet)
-      if (data.success && data.data && data.data.address) {
-        const address = data.data.address;
-
-        const qrCodeUrl =
-          `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${address}`;
-
-        document.getElementById('depositContent').innerHTML = `
-          <div class="deposit-address">
-            <div class="address-label">Your BSC Address (BEP20 ONLY)</div>
-            <div class="address-value" id="address">${address}</div>
-            <button class="copy-btn" onclick="copyAddress()">📋 Copy Address</button>
-          </div>
-
-          <div class="qr-code">
-            <img src="${qrCodeUrl}" alt="QR Code">
-            <div class="qr-hint">Scan with your mobile wallet</div>
-          </div>
-        `;
-      } else {
-        showError();
+      // ✅ CORRECT FIELD
+      if (!data.success || !data.wallet || !data.wallet.address) {
+        throw new Error('Deposit address missing');
       }
-    } catch (error) {
-      console.error('Deposit load error:', error);
-      showError();
+
+      const address = data.wallet.address;
+
+      document.getElementById('walletAddress').textContent = address;
+
+    } catch (err) {
+      console.error('Deposit load error:', err);
+      document.getElementById('walletAddress').textContent =
+        '❌ Error loading deposit address';
     }
   }
 
   /* ===============================
-     ERROR STATE
-  =============================== */
-  function showError() {
-    document.getElementById('depositContent').innerHTML = `
-      <div class="loading">
-        ❌ Error loading deposit address.<br/>
-        Please refresh the page.
-      </div>
-    `;
-  }
-
-  /* ===============================
-     COPY ADDRESS
-  =============================== */
-  window.copyAddress = function () {
-    const addressEl = document.getElementById('address');
-    if (!addressEl) return;
-
-    navigator.clipboard.writeText(addressEl.textContent).then(() => {
-      const btn = document.querySelector('.copy-btn');
-      const originalText = btn.textContent;
-
-      btn.textContent = '✓ Copied!';
-      btn.classList.add('copied');
-
-      setTimeout(() => {
-        btn.textContent = originalText;
-        btn.classList.remove('copied');
-      }, 2500);
-    });
-  };
-
-  /* ===============================
      INIT
   =============================== */
+  loadWallet();
   loadDepositInfo();
+
+  setInterval(loadWallet, 10000);
 
 });
 </script>
