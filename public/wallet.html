@@ -224,107 +224,101 @@
             </div>
         </div>
     </div>
-    
     <script>
 document.addEventListener('DOMContentLoaded', () => {
 
-    // API configuration
+  /* ===============================
+     API CONFIG
+  =============================== */
   const API_BASE =
     location.hostname === "localhost"
       ? "http://localhost:3000"
       : "https://crypto-deposit-backend-production.up.railway.app";
 
-    const userId = localStorage.getItem('userId');
-    const userEmail = localStorage.getItem('userEmail');
+  const userId = localStorage.getItem('userId');
 
-    if (!userId) {
-        window.location.href = '/login.html';
-        return;
+  if (!userId) {
+    window.location.href = '/login.html';
+    return;
+  }
+
+  /* ===============================
+     LOAD DEPOSIT ADDRESS
+  =============================== */
+  async function loadDepositInfo() {
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/wallet/deposit-address?userId=${userId}`
+      );
+
+      const data = await response.json();
+      console.log('Deposit API response:', data);
+
+      // ✅ IMPORTANT FIX: data.data (NOT data.wallet)
+      if (data.success && data.data && data.data.address) {
+        const address = data.data.address;
+
+        const qrCodeUrl =
+          `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${address}`;
+
+        document.getElementById('depositContent').innerHTML = `
+          <div class="deposit-address">
+            <div class="address-label">Your BSC Address (BEP20 ONLY)</div>
+            <div class="address-value" id="address">${address}</div>
+            <button class="copy-btn" onclick="copyAddress()">📋 Copy Address</button>
+          </div>
+
+          <div class="qr-code">
+            <img src="${qrCodeUrl}" alt="QR Code">
+            <div class="qr-hint">Scan with your mobile wallet</div>
+          </div>
+        `;
+      } else {
+        showError();
+      }
+    } catch (error) {
+      console.error('Deposit load error:', error);
+      showError();
     }
+  }
 
-    document.getElementById('userEmail').textContent = userEmail;
+  /* ===============================
+     ERROR STATE
+  =============================== */
+  function showError() {
+    document.getElementById('depositContent').innerHTML = `
+      <div class="loading">
+        ❌ Error loading deposit address.<br/>
+        Please refresh the page.
+      </div>
+    `;
+  }
 
-    async function loadWallet() {
-        try {
-            const response = await fetch(`${API_BASE}/api/wallet/${userId}`);
-            const data = await response.json();
+  /* ===============================
+     COPY ADDRESS
+  =============================== */
+  window.copyAddress = function () {
+    const addressEl = document.getElementById('address');
+    if (!addressEl) return;
 
-            if (data.success && data.wallet) {
-                document.getElementById('balance').textContent =
-                    parseFloat(data.wallet.balance || 0).toFixed(6);
-                document.getElementById('walletAddress').textContent =
-                    data.wallet.address;
-            } else {
-                document.getElementById('balance').textContent = '0.000000';
-                document.getElementById('walletAddress').textContent = 'Unavailable';
-            }
-        } catch (err) {
-            console.error(err);
-            document.getElementById('balance').textContent = 'Error';
-        }
-    }
+    navigator.clipboard.writeText(addressEl.textContent).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      const originalText = btn.textContent;
 
-    async function loadTransactions() {
-        try {
-            const response = await fetch(`${API_BASE}/api/wallet/${userId}/transactions`);
-            const data = await response.json();
-            const container = document.getElementById('transactionsContainer');
+      btn.textContent = '✓ Copied!';
+      btn.classList.add('copied');
 
-            if (data.success && data.transactions?.length) {
-                container.innerHTML = `
-                    <table class="transactions-table">
-                        <thead>
-                            <tr>
-                                <th>TX Hash</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th>Confirms</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.transactions.map(tx => `
-                                <tr>
-                                    <td>
-                                        <a href="https://bscscan.com/tx/${tx.tx_hash}" target="_blank">
-                                            ${tx.tx_hash.slice(0, 8)}...${tx.tx_hash.slice(-6)}
-                                        </a>
-                                    </td>
-                                    <td>${parseFloat(tx.amount).toFixed(2)} USDT</td>
-                                    <td class="status ${tx.status}">${tx.status}</td>
-                                    <td>${tx.confirmations || 0}</td>
-                                    <td>${new Date(tx.created_at).toLocaleString()}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
-            } else {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        No deposits yet.<br/>
-                        Send BEP20 USDT to your wallet address.
-                    </div>
-                `;
-            }
-        } catch (err) {
-            console.error(err);
-            document.getElementById('transactionsContainer').innerHTML =
-                '<div class="empty-state">Failed to load transactions</div>';
-        }
-    }
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.classList.remove('copied');
+      }, 2500);
+    });
+  };
 
-    window.logout = function () {
-        localStorage.clear();
-        window.location.href = '/login.html';
-    };
-
-    loadWallet();
-    loadTransactions();
-    setInterval(() => {
-        loadWallet();
-        loadTransactions();
-    }, 10000);
+  /* ===============================
+     INIT
+  =============================== */
+  loadDepositInfo();
 
 });
 </script>

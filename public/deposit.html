@@ -232,77 +232,100 @@
         </ol>  
     </div>  
 </div>  
-
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
+  /* ===============================
+     API CONFIG
+  =============================== */
   const API_BASE =
     location.hostname === "localhost"
       ? "http://localhost:3000"
       : "https://crypto-deposit-backend-production.up.railway.app";
 
-    const userId = localStorage.getItem('userId');
+  const userId = localStorage.getItem('userId');
 
-    if (!userId) {
-        window.location.href = '/login.html';
-        return;
-    }
+  if (!userId) {
+    window.location.href = '/login.html';
+    return;
+  }
 
-    async function loadDepositInfo() {
-        try {
-            const response = await fetch(`${API_BASE}/api/wallet/${userId}`);
-            const data = await response.json();
+  /* ===============================
+     LOAD DEPOSIT ADDRESS
+  =============================== */
+  async function loadDepositInfo() {
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/wallet/deposit-address?userId=${userId}`
+      );
 
-            if (data.success && data.wallet) {
-                const address = data.wallet.address;
-                const qrCodeUrl =
-                    `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${address}`;
+      const data = await response.json();
+      console.log('Deposit response:', data);
 
-                document.getElementById('depositContent').innerHTML = `
-                    <div class="deposit-address">
-                        <div class="address-label">Your BSC Address (BEP20 ONLY)</div>
-                        <div class="address-value" id="address">${address}</div>
-                        <button class="copy-btn" onclick="copyAddress()">📋 Copy Address</button>
-                    </div>
-                    <div class="qr-code">
-                        <div class="qr-label">Scan QR Code</div>
-                        <img src="${qrCodeUrl}" alt="QR Code">
-                        <div class="qr-hint">Scan with your mobile wallet</div>
-                    </div>
-                `;
-            } else {
-                showError();
-            }
-        } catch (err) {
-            console.error(err);
-            showError();
-        }
-    }
+      if (data.success && data.data && data.data.address) {
+        const address = data.data.address;
+        const qrCodeUrl =
+          `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${address}`;
 
-    function showError() {
         document.getElementById('depositContent').innerHTML = `
-            <div class="loading">
-                Error loading deposit address. Please refresh the page.
-            </div>
+          <div class="deposit-address">
+            <div class="address-label">Your BSC Address (BEP20 ONLY)</div>
+            <div class="address-value" id="address">${address}</div>
+            <button class="copy-btn" onclick="copyAddress()">📋 Copy Address</button>
+          </div>
+
+          <div class="qr-code">
+            <img src="${qrCodeUrl}" alt="QR Code">
+            <div class="qr-hint">Scan with your wallet</div>
+          </div>
         `;
+      } else {
+        showError();
+      }
+    } catch (err) {
+      console.error(err);
+      showError();
     }
+  }
 
-    window.copyAddress = function () {
-        const address = document.getElementById('address').textContent;
-        navigator.clipboard.writeText(address).then(() => {
-            const btn = document.querySelector('.copy-btn');
-            const original = btn.textContent;
-            btn.textContent = '✓ Copied!';
-            btn.classList.add('copied');
+  /* ===============================
+     ERROR STATE
+  =============================== */
+  function showError() {
+    document.getElementById('depositContent').innerHTML = `
+      <div class="loading">
+        ❌ Error loading deposit address.<br/>
+        Please refresh the page.
+      </div>
+    `;
+  }
 
-            setTimeout(() => {
-                btn.textContent = original;
-                btn.classList.remove('copied');
-            }, 2500);
-        });
-    };
+  /* ===============================
+     COPY ADDRESS
+  =============================== */
+  window.copyAddress = function () {
+    const el = document.getElementById('address');
+    if (!el) return;
 
-    loadDepositInfo();
+    navigator.clipboard.writeText(el.textContent).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      const original = btn.textContent;
+
+      btn.textContent = '✓ Copied!';
+      btn.classList.add('copied');
+
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  };
+
+  /* ===============================
+     INIT
+  =============================== */
+  loadDepositInfo();
+
 });
 </script>
 </body>  
