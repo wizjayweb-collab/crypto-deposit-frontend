@@ -235,41 +235,35 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
-  /* ===============================
-     API CONFIG
-  =============================== */
   const API_BASE =
     location.hostname === "localhost"
       ? "http://localhost:3000"
       : "https://crypto-deposit-backend-production.up.railway.app";
 
   const userId = localStorage.getItem('userId');
-
   if (!userId) {
     window.location.href = '/login.html';
     return;
   }
 
-  /* ===============================
-     LOAD DEPOSIT ADDRESS (BEP20)
-  =============================== */
   async function loadDepositInfo() {
     try {
-      const response = await fetch(
+      const res = await fetch(
         `${API_BASE}/api/wallet/deposit-address?userId=${userId}`
       );
 
-      const data = await response.json();
+      const data = await res.json();
       console.log('Deposit response:', data);
 
-      // ✅ CORRECT RESPONSE CHECK
-      if (!data.success || !data.wallet || !data.wallet.address) {
-        throw new Error('Deposit address not found');
+      if (!data.success || !data.wallet?.address) {
+        throw new Error('No deposit address');
       }
 
       const address = data.wallet.address;
+
+      // ✅ FIXED QR CODE
       const qrCodeUrl =
-        `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${address}`;
+        `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(address)}`;
 
       document.getElementById('depositContent').innerHTML = `
         <div class="deposit-address">
@@ -287,22 +281,18 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="qr-code">
-          <img src="${qrCodeUrl}" alt="Deposit QR Code">
+          <img src="${qrCodeUrl}" alt="Deposit QR Code" />
           <div class="qr-hint">
             Scan with your wallet
           </div>
         </div>
       `;
-
-    } catch (err) {
-      console.error('Deposit load error:', err);
+    } catch (e) {
+      console.error(e);
       showError();
     }
   }
 
-  /* ===============================
-     ERROR STATE
-  =============================== */
   function showError() {
     document.getElementById('depositContent').innerHTML = `
       <div class="loading">
@@ -312,32 +302,18 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  /* ===============================
-     COPY ADDRESS
-  =============================== */
   window.copyAddress = function () {
     const el = document.getElementById('address');
     if (!el) return;
 
     navigator.clipboard.writeText(el.textContent).then(() => {
       const btn = document.querySelector('.copy-btn');
-      const original = btn.textContent;
-
       btn.textContent = '✓ Copied!';
-      btn.classList.add('copied');
-
-      setTimeout(() => {
-        btn.textContent = original;
-        btn.classList.remove('copied');
-      }, 2000);
+      setTimeout(() => (btn.textContent = '📋 Copy Address'), 2000);
     });
   };
 
-  /* ===============================
-     INIT
-  =============================== */
   loadDepositInfo();
-
 });
 </script>
 </body>  
